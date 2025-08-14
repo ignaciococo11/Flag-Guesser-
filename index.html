@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Juego de Adivinar Banderas</title>
+<style>
+  :root{
+    --bg:#0f1220; --panel:#151a2f; --accent:#6ae1ff; --accent2:#ffd166; --text:#eef2ff; --muted:#97a0c0;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,'Helvetica Neue',Arial;
+    color:var(--text); background: radial-gradient(1200px 600px at 20% -10%, #1b2350 0%, #0f1220 60%), var(--bg);
+    min-height:100dvh; display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  .app{
+    width:min(980px, 95vw); background:linear-gradient(180deg, #171c34 0%, #10152a 100%);
+    border:1px solid #232a4a; border-radius:16px; padding:18px; box-shadow:0 20px 60px rgba(0,0,0,.35);
+  }
+  header{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap}
+  .title{display:flex; align-items:center; gap:12px}
+  .logo{
+    width:42px; height:42px; border-radius:10px; background:linear-gradient(135deg, var(--accent), #8b6cff);
+    display:grid; place-items:center; font-weight:900; color:#0a0f1e; text-shadow:0 1px 0 rgba(255,255,255,.35);
+  }
+  h1{margin:0; font-size:1.2rem; letter-spacing:.3px}
+  .controls, .stats{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+  .chip{
+    background:#10162d; border:1px solid #28325b; color:var(--muted); padding:6px 10px; border-radius:999px;
+    font-size:.9rem; display:flex; align-items:center; gap:8px;
+  }
+  .chip input[type="number"]{
+    width:70px; padding:6px 8px; background:#0b1024; border:1px solid #2a3768; border-radius:8px; color:var(--text);
+  }
+  main{display:grid; grid-template-columns:1fr; gap:14px; margin-top:14px}
+  .stage{
+    position:relative; background:conic-gradient(from 180deg at 50% 0%, #0f1533, #0d142f 30%, #0f1533);
+    border:1px solid #22305f; border-radius:14px; padding:16px; min-height:340px; display:grid; gap:10px;
+    grid-template-rows:auto 1fr auto; overflow:hidden;
+  }
+  .flag-wrap{
+    position:relative; display:grid; place-items:center; background:#0b1024; border:1px dashed #273463;
+    border-radius:12px; padding:12px; min-height:220px; overflow:hidden;
+  }
+  .flag{
+    max-width:100%; max-height:260px; width:auto; height:auto; border-radius:10px;
+    box-shadow:0 10px 40px rgba(0,0,0,.45);
+  }
+  .reveal-tag{
+    position:absolute; inset:auto 12px 12px 12px; background:rgba(0,0,0,.65);
+    border:1px solid rgba(255,255,255,.15); border-radius:10px; padding:10px 12px; backdrop-filter: blur(6px);
+    font-weight:700; letter-spacing:.3px; display:none;
+  }
+  .timerbar{
+    height:8px; border-radius:6px; background:#0b1024; border:1px solid #273463; overflow:hidden;
+  }
+  .timerfill{
+    height:100%; width:100%; background:linear-gradient(90deg, var(--accent), var(--accent2));
+    transform-origin:left center; transform:scaleX(1);
+  }
+  .btns{display:flex; gap:10px; flex-wrap:wrap}
+  button{
+    border:1px solid #2a3768; background:#0e1633; color:var(--text); padding:10px 14px; border-radius:10px;
+    font-weight:700; letter-spacing:.2px; cursor:pointer; transition:.15s transform, .15s background, .15s border;
+  }
+  button:hover{transform:translateY(-1px); background:#141e42}
+  button:active{transform:translateY(0)}
+  .primary{background:linear-gradient(90deg, #6ae1ff, #8b6cff); color:#0a0f1e; border:none}
+  .danger{background:#2b1220; border:1px solid #6b1e3f}
+  footer{display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; color:var(--muted)}
+  .stat{padding:6px 10px; border:1px solid #273463; border-radius:999px; background:#0b1024; color:var(--text)}
+  .hint{opacity:.9}
+  .small{font-size:.9rem}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="title">
+      <div class="logo">🌍</div>
+      <h1>Juego de Banderas — Adiviná el país</h1>
+    </div>
+    <div class="controls">
+      <div class="chip">
+        ⏱️ Duración por ronda (s):
+        <input id="secondsInput" type="number" min="3" max="30" step="1" value="10" />
+      </div>
+      <div class="chip">
+        <button id="pauseBtn">⏸️ Pausar</button>
+        <button id="skipBtn">⏭️ Skip</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="stage">
+      <div class="timerbar"><div class="timerfill" id="timerFill"></div></div>
+
+      <div class="flag-wrap">
+        <img id="flagImg" class="flag" alt="Bandera" />
+        <div id="revealTag" class="reveal-tag">—</div>
+      </div>
+
+      <div class="btns">
+        <button id="revealBtn" class="primary">🎯 Reveal</button>
+        <button id="nextBtn">➡️ Siguiente</button>
+        <button id="shuffleBtn">🔀 Mezclar</button>
+        <button id="resetScoreBtn" class="danger">🧹 Reset Puntaje</button>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="stats">
+      <div class="stat">Ronda: <span id="roundNum">0</span></div>
+      <div class="stat">Aciertos manuales (Reveal): <span id="hits">0</span></div>
+      <div class="stat">Auto-reveladas: <span id="autos">0</span></div>
+      <div class="stat">Total países cargados: <span id="totalCount">—</span></div>
+    </div>
+    <div class="hint small">Tip: cambiá a <b>6</b> segundos para modo “rápido”.</div>
+  </footer>
+</div>
+
+<script>
+/**
+ * Juego de Banderas
+ * — Carga países y banderas desde Rest Countries (https://restcountries.com)
+ * — Muestra una bandera aleatoria por ronda
+ * — Reveal manual o auto a los X segundos (configurable)
+ * — Después de revelar, avanza solo
+ */
+
+const API_URL = "https://restcountries.com/v3.1/all?fields=name,flags,independent,unMember,cca2";
+
+// Estado del juego
+let countries = [];          // {name, flag, code}
+let order = [];              // índices barajados
+let idx = -1;                // índice actual en 'order'
+let revealed = false;        // si ya se reveló el nombre
+let paused = false;
+let timerId = null;          // cuenta regresiva principal (interval)
+let roundDeadline = 0;       // timestamp cuando termina la ronda
+let revealTimeoutId = null;  // timeout que fuerza reveal auto
+let afterRevealTimeoutId = null; // timeout para pasar a siguiente tras revelar
+let hits = 0;
+let autos = 0;
+let round = 0;
+
+const els = {
+  secondsInput: document.getElementById("secondsInput"),
+  pauseBtn: document.getElementById("pauseBtn"),
+  skipBtn: document.getElementById("skipBtn"),
+  revealBtn: document.getElementById("revealBtn"),
+  nextBtn: document.getElementById("nextBtn"),
+  shuffleBtn: document.getElementById("shuffleBtn"),
+  resetScoreBtn: document.getElementById("resetScoreBtn"),
+  flagImg: document.getElementById("flagImg"),
+  revealTag: document.getElementById("revealTag"),
+  timerFill: document.getElementById("timerFill"),
+  roundNum: document.getElementById("roundNum"),
+  hits: document.getElementById("hits"),
+  autos: document.getElementById("autos"),
+  totalCount: document.getElementById("totalCount"),
+};
+
+function secs(){ return Math.max(3, Math.min(30, Number(els.secondsInput.value)||10)); }
+function ms(){ return secs() * 1000; }
+
+function shuffle(array){
+  // Fisher-Yates
+  for(let i=array.length-1; i>0; i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+async function loadCountries(){
+  try{
+    const res = await fetch(API_URL);
+    const data = await res.json();
+
+    // Filtro: países independientes. Además agregamos observadores conocidos.
+    const extraObservers = new Set(["Holy See", "Palestine"]);
+    countries = data
+      .filter(c => c && c.name && c.flags && c.flags.svg)
+      .filter(c => c.independent === true || extraObservers.has(c.name?.common))
+      .map(c => ({
+        name: c.name.common,
+        flag: c.flags.svg,
+        code: c.cca2
+      }));
+
+    // Orden inicial aleatorio
+    order = shuffle([...Array(countries.length).keys()]);
+    els.totalCount.textContent = String(countries.length);
+    nextRound(true);
+  }catch(e){
+    console.error(e);
+    alert("No se pudieron cargar los países. Reintentá recargar la página.");
+  }
+}
+
+function setTimerProgress(){
+  const total = ms();
+  const remaining = Math.max(0, roundDeadline - Date.now());
+  const scale = remaining/total;
+  els.timerFill.style.transform = `scaleX(${scale})`;
+}
+
+function clearTimers(){
+  if(timerId){ clearInterval(timerId); timerId = null; }
+  if(revealTimeoutId){ clearTimeout(revealTimeoutId); revealTimeoutId = null; }
+  if(afterRevealTimeoutId){ clearTimeout(afterRevealTimeoutId); afterRevealTimeoutId = null; }
+}
+
+function scheduleAutoReveal(){
+  clearTimeout(revealTimeoutId);
+  revealTimeoutId = setTimeout(() => {
+    if(!revealed){
+      autoReveal();
+    }
+  }, ms());
+}
+
+function showFlag(country){
+  els.flagImg.src = country.flag;
+  els.flagImg.alt = `Bandera de ${country.name}`;
+  els.revealTag.style.display = "none";
+  els.revealTag.textContent = "—";
+}
+
+function revealName(manual=true){
+  if(revealed) return;
+  revealed = true;
+  const c = countries[order[idx]];
+  els.revealTag.textContent = c.name;
+  els.revealTag.style.display = "block";
+  if(manual){ hits++; els.hits.textContent = String(hits); }
+  // Pasar a la siguiente bandera después de 2s
+  afterRevealTimeoutId = setTimeout(() => nextRound(false), 2000);
+}
+
+function autoReveal(){
+  autos++; els.autos.textContent = String(autos);
+  revealName(false);
+}
+
+function nextRound(incrementRound=true){
+  clearTimers();
+  revealed = false;
+
+  // avanzar índice
+  idx++;
+  if(idx >= order.length){
+    // Si terminamos todas, re-mezclar
+    order = shuffle(order);
+    idx = 0;
+  }
+  if(incrementRound){ round++; els.roundNum.textContent = String(round); }
+
+  const c = countries[order[idx]];
+  showFlag(c);
+
+  // arranca timer
+  roundDeadline = Date.now() + ms();
+  setTimerProgress();
+  timerId = setInterval(() => {
+    if(!paused){
+      setTimerProgress();
+      if(Date.now() >= roundDeadline && !revealed){
+        // seguridad extra — igual programamos scheduleAutoReveal
+        autoReveal();
+      }
+    }
+  }, 50);
+
+  // programar auto-reveal
+  scheduleAutoReveal();
+}
+
+function togglePause(){
+  paused = !paused;
+  els.pauseBtn.textContent = paused ? "▶️ Reanudar" : "⏸️ Pausar";
+  if(paused){
+    clearTimers();
+  }else{
+    // relanzar conteo con tiempo completo (simple y efectivo)
+    roundDeadline = Date.now() + ms();
+    setTimerProgress();
+    timerId = setInterval(() => {
+      if(!paused){
+        setTimerProgress();
+        if(Date.now() >= roundDeadline && !revealed){
+          autoReveal();
+        }
+      }
+    }, 50);
+    scheduleAutoReveal();
+  }
+}
+
+/* Eventos UI */
+els.revealBtn.addEventListener("click", () => revealName(true));
+els.nextBtn.addEventListener("click", () => nextRound(true));
+els.shuffleBtn.addEventListener("click", () => { order = shuffle(order); idx = -1; nextRound(true); });
+els.resetScoreBtn.addEventListener("click", () => { hits = 0; autos = 0; round = 0; els.hits.textContent="0"; els.autos.textContent="0"; els.roundNum.textContent="0"; });
+els.pauseBtn.addEventListener("click", togglePause);
+els.skipBtn.addEventListener("click", () => { clearTimers(); nextRound(true); });
+els.secondsInput.addEventListener("change", () => {
+  // al cambiar duración, reinicia la ronda actual con el nuevo tiempo
+  clearTimers();
+  if(!revealed){
+    roundDeadline = Date.now() + ms();
+    setTimerProgress();
+    timerId = setInterval(() => {
+      if(!paused){
+        setTimerProgress();
+        if(Date.now() >= roundDeadline && !revealed){
+          autoReveal();
+        }
+      }
+    }, 50);
+    scheduleAutoReveal();
+  }
+});
+
+/* Iniciar */
+loadCountries();
+</script>
+</body>
+</html>

@@ -1,0 +1,222 @@
+:root {
+  --bg: #0f1220;
+  --panel: #151a2f;
+  --accent: #6ae1ff;
+  --accent2: #ffd166;
+  --text: #eef2ff;
+  --muted: #97a0c0;
+  --radius: 20px;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: "Segoe UI", sans-serif;
+}
+
+body {
+  margin: 0;
+  background: linear-gradient(135deg, #1b2350, #0f1220);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  min-height: 100vh;
+}
+
+/* Panel principal */
+.app {
+  width: min(980px, 95vw);
+  background: var(--panel);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+/* Encabezado */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo {
+  width: 50px;
+  height: 50px;
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, var(--accent), #8b6cff);
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  font-size: 1.2rem;
+  color: #0a0f1e;
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.controls, .stats {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Chips */
+.chip {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--muted);
+  padding: 6px 10px;
+  border-radius: var(--radius);
+  font-size: .9rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chip input[type="number"] {
+  width: 70px;
+  padding: 6px 8px;
+  background: transparent;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  color: var(--text);
+}
+
+/* Área principal */
+main {
+  margin-top: 14px;
+}
+
+.stage {
+  background: linear-gradient(180deg, #171c34 0%, #10152a 100%);
+  border-radius: var(--radius);
+  padding: 16px;
+  min-height: 340px;
+  display: grid;
+  gap: 14px;
+  grid-template-rows: auto 1fr auto;
+}
+
+/* Contenedor de bandera */
+.flag-wrap {
+  position: relative;
+  display: grid;
+  place-items: center;
+  background: #0b1024;
+  border-radius: var(--radius);
+  padding: 12px;
+  overflow: hidden;
+}
+
+.flag {
+  max-width: 100%;
+  max-height: 260px;
+  border-radius: var(--radius);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, .45);
+  animation: flagFade 0.6s ease;
+}
+
+@keyframes flagFade {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Cartel Reveal */
+.reveal-tag {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  right: 12px;
+  background: rgba(0, 0, 0, .65);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  backdrop-filter: blur(6px);
+  font-weight: 700;
+  letter-spacing: .3px;
+  display: none;
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Barra de tiempo */
+.timerbar {
+  height: 8px;
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+}
+
+.timerfill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  transform-origin: left center;
+  transform: scaleX(1);
+  transition: transform 0.2s linear;
+}
+
+/* Botones */
+.btns {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+button {
+  border: none;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+button:hover {
+  transform: translateY(-2px) scale(1.03);
+}
+
+button.primary {
+  background: linear-gradient(90deg, var(--accent), #8b6cff);
+  color: #0a0f1e;
+}
+
+button.danger {
+  background: #e63946;
+  color: white;
+}
+
+button:not(.primary):not(.danger) {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+}
+
+/* Footer */
+footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.stat {
+  padding: 6px 10px;
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.05);
+}
